@@ -1,0 +1,27 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**
+!**/src/test/**
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.factorypath
+
+# OS & Environment files
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.local
+
+# Build outputs
+frontend/dist/
+node_modules/

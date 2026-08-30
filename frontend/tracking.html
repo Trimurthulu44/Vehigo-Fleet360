@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking & Telematics — VEHIGO Platform</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Leaflet CSS for OpenStreetMap rendering -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">V</div>
+                <div class="brand-text">VEHIGO</div>
+            </div>
+            <ul class="nav-list">
+                <li><a href="index.html" class="nav-link"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg><span>Dashboard</span></a></li>
+                <li><a href="vehicles.html" class="nav-link"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg><span>Vehicles</span></a></li>
+                <li><a href="drivers.html" class="nav-link"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg><span>Drivers</span></a></li>
+                <li><a href="routes.html" class="nav-link"><svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg><span>Routes</span></a></li>
+                <li><a href="tracking.html" class="nav-link active"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg><span>Tracking</span></a></li>
+                <li><a href="maintenance.html" class="nav-link"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg><span>Maintenance</span></a></li>
+                <li><a href="#" onclick="logout(); return false;" class="nav-link nav-logout"><svg viewBox="0 0 24 24" style="stroke: currentColor; fill: none; stroke-width: 2;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg><span>Logout</span></a></li>
+            </ul>
+            <div class="sidebar-footer">
+                VEHIGO v1.0.0 &bull; Java Full Stack Platform
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="page-header">
+                <div>
+                    <h1 class="page-title">Live Telematics & Vehicle Tracking</h1>
+                    <p class="page-subtitle">Real-time OpenStreetMap telemetry visualization and route progress simulation.</p>
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <button class="btn btn-primary" id="sim-move-btn">⚡ Simulate Movement</button>
+                </div>
+            </header>
+
+            <!-- Tracking Layout: Sidebar + Interactive Leaflet Map -->
+            <div class="tracking-layout">
+                <!-- Vehicle Status Sidebar -->
+                <div class="vehicle-sidebar">
+                    <div class="vehicle-sidebar-header">
+                        <div class="vehicle-sidebar-title">
+                            <span>Fleet Vehicles</span>
+                            <span id="vehicle-count-badge" class="badge badge-available">0 Active</span>
+                        </div>
+                        <input type="text" id="vehicle-search" class="form-control" placeholder="Search vehicle or route..." style="width: 100%;">
+                    </div>
+                    <ul class="vehicle-list" id="vehicle-list-container">
+                        <li style="padding: 1.5rem; text-align: center; color: var(--text-muted);">Loading fleet status...</li>
+                    </ul>
+                </div>
+
+                <!-- Interactive OpenStreetMap Container & Active Info Card -->
+                <div class="map-container-wrapper">
+                    <!-- Leaflet OpenStreetMap Container -->
+                    <div id="map" class="map-area"></div>
+
+                    <!-- Selected Telematics Card & API Form Row -->
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                        <!-- Selected Vehicle Telematics Detail Card -->
+                        <div class="stat-card" style="flex-direction: column; align-items: flex-start; gap: 1.25rem;">
+                            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                                <div>
+                                    <h2 id="track-vehicle-number" style="font-size: 1.35rem; font-weight: 700;">Select Vehicle</h2>
+                                    <span id="track-vehicle-type" style="color: var(--text-muted); font-size: 0.85rem;">-</span>
+                                </div>
+                                <span id="track-status" class="badge badge-available">AVAILABLE</span>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; width: 100%;">
+                                <div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.2rem; font-weight: 600;">ASSIGNED DRIVER</div>
+                                    <div id="track-driver" style="font-size: 1.05rem; font-weight: 600;">Unassigned</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.2rem; font-weight: 600;">CURRENT ROUTE</div>
+                                    <div id="track-route" style="font-size: 1.05rem; font-weight: 600;">No Active Route</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.2rem; font-weight: 600;">CURRENT LOCATION</div>
+                                    <div id="track-location-text" style="font-size: 1.05rem; font-weight: 600; color: var(--accent-cyan);">Chennai Port</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.2rem; font-weight: 600;">GPS COORDINATES</div>
+                                    <div style="font-size: 0.95rem; font-family: monospace; color: var(--text-primary);">
+                                        Lat: <span id="track-lat">13.0827</span> | Lng: <span id="track-lng">80.2707</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="font-size: 0.8rem; color: var(--text-muted); width: 100%; text-align: right; border-top: 1px solid var(--border-color); padding-top: 0.6rem;">
+                                Last Telematics Update: <span id="track-updated" style="color: var(--text-primary);">Just Now</span>
+                            </div>
+                        </div>
+
+                        <!-- Manual GPS Telemetry API Dispatch Card -->
+                        <div class="stat-card" style="flex-direction: column; align-items: flex-start; gap: 0.75rem;">
+                            <h3 style="font-size: 1rem; font-weight: 700; border-bottom: 1px solid var(--border-color); width: 100%; padding-bottom: 0.4rem;">Manual Location Update API</h3>
+                            <form id="tracking-form" style="width: 100%; display: flex; flex-direction: column; gap: 0.65rem;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="font-size: 0.75rem;">Location Name</label>
+                                    <input type="text" id="update-location" class="form-control" style="padding: 0.45rem 0.65rem;" placeholder="e.g. Bangalore Toll Plaza" required>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label style="font-size: 0.75rem;">Latitude</label>
+                                        <input type="number" step="0.0001" id="update-lat" class="form-control" style="padding: 0.45rem 0.65rem;" placeholder="12.9716" required>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label style="font-size: 0.75rem;">Longitude</label>
+                                        <input type="number" step="0.0001" id="update-lng" class="form-control" style="padding: 0.45rem 0.65rem;" placeholder="77.5946" required>
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="font-size: 0.75rem;">Vehicle Status</label>
+                                    <select id="update-status" class="form-control" style="padding: 0.45rem 0.65rem;">
+                                        <option value="AVAILABLE">AVAILABLE</option>
+                                        <option value="ON_TRIP">ON_TRIP</option>
+                                        <option value="MAINTENANCE">MAINTENANCE</option>
+                                        <option value="INACTIVE">INACTIVE</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm" style="margin-top: 0.35rem; justify-content: center;">PUT /api/tracking</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Footer -->
+            <footer class="app-footer">
+                Developed by @Valteti Trimurthulu
+            </footer>
+        </main>
+    </div>
+
+    <!-- Leaflet JS for OpenStreetMap integration -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/tracking.js"></script>
+</body>
+</html>

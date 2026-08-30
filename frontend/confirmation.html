@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Activated — VEHIGO SaaS Platform</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="public-body">
+
+    <!-- Header Navbar -->
+    <header class="public-header">
+        <div class="public-header-container">
+            <a href="home.html" class="brand-link">
+                <div class="brand-icon">V</div>
+                <div class="brand-text">VEHIGO <span class="saas-badge">SaaS</span></div>
+            </a>
+        </div>
+    </header>
+
+    <div class="registration-container">
+        <div class="registration-card" style="text-align: center; align-items: center;">
+            <div class="confirmation-icon">🎉</div>
+            <h1 class="registration-title" style="color: var(--status-available);">Subscription Activated!</h1>
+            <p class="registration-subtitle" style="font-size: 1rem; color: var(--text-primary);">
+                Welcome to <strong>VEHIGO</strong>. Your account has been created successfully.
+            </p>
+
+            <div class="confirmation-notice-box">
+                <div class="notice-icon">✉️</div>
+                <div>
+                    <strong>Login Credentials Sent!</strong>
+                    <p style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-secondary);">
+                        Account access details and temporary password have been dispatched to:
+                        <br><span id="conf-email" style="color: var(--accent-cyan); font-weight: 600;">owner@example.com</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Activation Summary -->
+            <div class="order-summary-card" style="width: 100%; text-align: left;">
+                <div class="summary-row">
+                    <span>Business Name:</span>
+                    <strong id="conf-business">Loading...</strong>
+                </div>
+                <div class="summary-row">
+                    <span>Username:</span>
+                    <strong id="conf-username" style="color: var(--accent-blue);">Loading...</strong>
+                </div>
+                <div class="summary-row">
+                    <span>Subscription Status:</span>
+                    <span id="conf-status" class="badge badge-available">ACTIVE</span>
+                </div>
+                <div class="summary-row">
+                    <span>Valid Until:</span>
+                    <strong id="conf-expiry">Loading...</strong>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; width: 100%;">
+                <a href="login.html" class="btn btn-primary btn-block btn-lg" style="justify-content: center;">
+                    <span>Go to Login</span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" style="stroke: currentColor; fill: none; stroke-width: 2;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Footer -->
+    <footer class="app-footer">
+        Developed by @Valteti Trimurthulu
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const subscriptionId = urlParams.get('id');
+
+            if (subscriptionId) {
+                try {
+                    const sub = await API.get(`/subscriptions/${subscriptionId}`);
+                    if (sub) {
+                        document.getElementById('conf-business').textContent = sub.businessName;
+                        document.getElementById('conf-email').textContent = sub.ownerEmail;
+                        document.getElementById('conf-username').textContent = sub.username;
+                        document.getElementById('conf-status').textContent = sub.subscriptionStatus;
+                        document.getElementById('conf-expiry').textContent = formatDate(sub.expiryDate);
+                    }
+                } catch (e) {
+                    console.error("Could not fetch confirmation details:", e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
