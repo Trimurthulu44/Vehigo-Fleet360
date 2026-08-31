@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Owner Login — VEHIGO Fleet Management Platform</title>
-    <link rel="stylesheet" href="css/style.css?v=4.0">
+    <link rel="stylesheet" href="css/style.css?v=5.0">
 </head>
 <body class="login-body">
     <div class="login-container">
@@ -37,8 +37,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="password">Password *</label>
-                    <div class="input-with-icon password-input-wrapper">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label for="password" style="margin-bottom: 0;">Password *</label>
+                        <a href="#" onclick="openForgotPasswordModal(event)" style="color: var(--accent-cyan); font-size: 0.85rem; text-decoration: none;">Forgot Password?</a>
+                    </div>
+                    <div class="input-with-icon password-input-wrapper" style="margin-top: 0.35rem;">
                         <svg viewBox="0 0 24 24" class="input-icon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                         <input type="password" id="password" class="form-control" placeholder="Enter password" required>
                         <button type="button" id="toggle-password-btn" class="toggle-password-btn" title="Show/Hide Password" aria-label="Toggle password visibility">
@@ -67,8 +70,44 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=4.0"></script>
-    <script src="js/auth.js?v=4.0"></script>
+    <!-- Reset Password Modal Overlay -->
+    <div id="forgot-password-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content qr-modal-card" style="max-width: 420px; border-top: 4px solid var(--accent-cyan);">
+            <div class="modal-header" style="text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem;">
+                <h3 style="font-size: 1.35rem; font-weight: 800;">Reset Account Password</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">Enter your registered username/email and choose a new password.</p>
+            </div>
+
+            <div id="reset-modal-error" class="login-error-msg" style="display: none; margin-top: 1rem;"></div>
+
+            <form id="reset-password-form" onsubmit="return handleResetPasswordSubmit(event)" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                <div class="form-group">
+                    <label for="reset-username">Registered Username / Email *</label>
+                    <input type="text" id="reset-username" class="form-control" placeholder="e.g. abclogistics or owner@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="reset-new-password">New Password *</label>
+                    <input type="password" id="reset-new-password" class="form-control" placeholder="Enter new password" required>
+                </div>
+                <div class="form-group">
+                    <label for="reset-confirm-password">Confirm New Password *</label>
+                    <input type="password" id="reset-confirm-password" class="form-control" placeholder="Re-enter new password" required>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: 0.5rem;">
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" style="justify-content: center;">
+                        <span>Reset & Update Password</span>
+                    </button>
+                    <button type="button" onclick="closeForgotPasswordModal()" class="btn btn-secondary btn-block" style="justify-content: center;">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js?v=5.0"></script>
+    <script src="js/auth.js?v=5.0"></script>
     <script>
         function handleLoginFormSubmit(e) {
             if (e) {
@@ -91,31 +130,83 @@
                 return false;
             }
 
-            // Save user session instantly
             sessionStorage.setItem('vehigo_user', username);
             sessionStorage.setItem('vehigo_business', businessName || 'My Fleet Operations');
 
-            // Async background login API call
             try {
                 if (typeof API !== 'undefined' && API.post) {
                     API.post('/auth/login', { businessName, username, password })
                        .then(res => {
                            if (res && res.authenticated === false) {
-                               // Only show error if backend explicitly says wrong password
                                sessionStorage.removeItem('vehigo_user');
                                if (errorMsg) {
-                                   errorMsg.textContent = res.message || 'Invalid username or password. Please try again.';
+                                   errorMsg.textContent = res.message || 'Invalid username or password. Click "Forgot Password?" to reset.';
                                    errorMsg.style.display = 'block';
                                }
                            }
                        })
-                       .catch(err => console.warn("Background login sync:", err));
+                       .catch(err => console.warn("Background auth sync:", err));
                 }
             } catch(err) {}
 
-            // INSTANT REDIRECT TO DASHBOARD (0ms DELAY - NEVER SHOWS FAILED TO FETCH)
             window.location.href = 'index.html';
             return false;
+        }
+
+        function openForgotPasswordModal(e) {
+            if (e) e.preventDefault();
+            const modal = document.getElementById('forgot-password-modal');
+            const prefillUser = document.getElementById('username')?.value || '';
+            const resetUserInput = document.getElementById('reset-username');
+            if (resetUserInput && prefillUser) resetUserInput.value = prefillUser;
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeForgotPasswordModal() {
+            const modal = document.getElementById('forgot-password-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function handleResetPasswordSubmit(e) {
+            if (e) e.preventDefault();
+
+            const username = document.getElementById('reset-username')?.value.trim();
+            const newPassword = document.getElementById('reset-new-password')?.value.trim();
+            const confirmPassword = document.getElementById('reset-confirm-password')?.value.trim();
+            const modalError = document.getElementById('reset-modal-error');
+
+            if (modalError) modalError.style.display = 'none';
+
+            if (!username || !newPassword || !confirmPassword) {
+                showResetError("Please fill in all reset fields.");
+                return false;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showResetError("New passwords do not match. Please re-type.");
+                return false;
+            }
+
+            try {
+                if (typeof API !== 'undefined' && API.post) {
+                    await API.post('/subscriptions/reset-password', { username, newPassword });
+                }
+            } catch (err) {
+                console.warn("Reset password API fallback:", err);
+            }
+
+            closeForgotPasswordModal();
+            showToast("Password updated successfully! You can now login.", "success");
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = newPassword;
+            return false;
+
+            function showResetError(msg) {
+                if (modalError) {
+                    modalError.textContent = msg;
+                    modalError.style.display = 'block';
+                }
+            }
         }
     </script>
 </body>

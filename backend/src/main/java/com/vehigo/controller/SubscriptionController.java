@@ -54,6 +54,20 @@ public class SubscriptionController {
         return ResponseEntity.ok(updated);
     }
 
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody Map<String, String> payload) {
+        String username = payload.get("username");
+        String newPassword = payload.get("newPassword");
+        if (username == null || newPassword == null || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Username and new password are required."));
+        }
+        Subscription updated = subscriptionService.resetPassword(username, newPassword);
+        return ResponseEntity.ok(Map.of(
+            "message", "Password updated successfully! You can now log in with your new password.",
+            "username", updated.getUsername()
+        ));
+    }
+
     @GetMapping("/status/{id}")
     public ResponseEntity<Map<String, Object>> getStatus(@PathVariable String id) {
         Subscription sub = subscriptionService.getSubscriptionById(id);

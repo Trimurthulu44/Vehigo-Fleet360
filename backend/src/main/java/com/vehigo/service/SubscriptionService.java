@@ -86,6 +86,16 @@ public class SubscriptionService {
         return updated;
     }
 
+    public Subscription resetPassword(String usernameOrEmail, String newPassword) {
+        Subscription sub = subscriptionRepository.findByUsername(usernameOrEmail)
+            .or(() -> subscriptionRepository.findByOwnerEmail(usernameOrEmail))
+            .orElseThrow(() -> new ResourceNotFoundException("No registered account found for username or email: " + usernameOrEmail));
+
+        sub.setPassword(newPassword);
+        sub.setUpdatedAt(LocalDateTime.now());
+        return subscriptionRepository.save(sub);
+    }
+
     public Subscription getSubscriptionById(String id) {
         return subscriptionRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Subscription not found with ID: " + id));
