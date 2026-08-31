@@ -4,6 +4,7 @@ import com.vehigo.model.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,9 @@ public class EmailService {
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
     private final JavaMailSender mailSender;
+
+    @Value("${spring.mail.username:vehigo.saas@gmail.com}")
+    private String fromEmail;
 
     @Autowired(required = false)
     public EmailService(JavaMailSender mailSender) {
@@ -63,6 +67,7 @@ public class EmailService {
         // Log formatted email to console for development visibility
         logger.info("==================================================================");
         logger.info("[VEHIGO EMAIL SERVICE] Dispatching 'Welcome to the Family' email to: {}", recipient);
+        logger.info("From: {}", (fromEmail != null && !fromEmail.isBlank()) ? fromEmail : "vehigo.saas@gmail.com");
         logger.info("Subject: {}", subject);
         logger.info("Body:\n{}", content);
         logger.info("==================================================================");
@@ -70,14 +75,16 @@ public class EmailService {
         if (mailSender != null) {
             try {
                 SimpleMailMessage message = new SimpleMailMessage();
+                String sender = (fromEmail != null && !fromEmail.isBlank()) ? fromEmail : "vehigo.saas@gmail.com";
+                message.setFrom(sender);
                 message.setTo(recipient);
                 message.setSubject(subject);
                 message.setText(content);
                 mailSender.send(message);
-                logger.info("[VEHIGO EMAIL SERVICE] Welcome email sent successfully via SMTP.");
+                logger.info("[VEHIGO EMAIL SERVICE] Welcome email sent successfully via SMTP to {}", recipient);
                 return true;
             } catch (Exception e) {
-                logger.warn("[VEHIGO EMAIL SERVICE] SMTP dispatch fallback: {}", e.getMessage());
+                logger.error("[VEHIGO EMAIL SERVICE] SMTP dispatch error: ", e);
             }
         } else {
             logger.info("[VEHIGO EMAIL SERVICE] SMTP mail sender bean not configured. Development mode logging completed.");

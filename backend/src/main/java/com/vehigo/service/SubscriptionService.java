@@ -28,12 +28,15 @@ public class SubscriptionService {
     }
 
     public Subscription registerSubscription(SubscriptionRegistrationDto dto) {
-        // Check for duplicates
+        // Strict duplicate validation checks
         if (subscriptionRepository.findByUsername(dto.getUsername()).isPresent()) {
-            throw new DuplicateResourceException("Username '" + dto.getUsername() + "' is already registered.");
+            throw new DuplicateResourceException("Username '" + dto.getUsername() + "' is already registered. Please choose another username.");
         }
         if (subscriptionRepository.findByOwnerEmail(dto.getOwnerEmail()).isPresent()) {
-            throw new DuplicateResourceException("Email '" + dto.getOwnerEmail() + "' is already registered.");
+            throw new DuplicateResourceException("Email address '" + dto.getOwnerEmail() + "' is already registered. Please use another email address or login.");
+        }
+        if (dto.getPhone() != null && !dto.getPhone().isBlank() && subscriptionRepository.findByPhone(dto.getPhone()).isPresent()) {
+            throw new DuplicateResourceException("Mobile number '" + dto.getPhone() + "' is already registered. Please use another mobile number.");
         }
 
         double amount = calculatePlanAmount(dto.getSelectedPlan());

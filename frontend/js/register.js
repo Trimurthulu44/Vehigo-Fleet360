@@ -1,4 +1,4 @@
-/* VEHIGO — Business Registration Logic */
+/* VEHIGO — Business Registration Logic with Strict Duplicate Checks */
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -14,49 +14,66 @@ document.addEventListener('DOMContentLoaded', () => {
     if (planPriceEl) planPriceEl.textContent = planDetails.price;
     if (planInputEl) planInputEl.value = planDetails.code;
 
-    // Handle Form Submit
+    // Handle Form Submit with Strict Validation & Duplicate Checking
     const regForm = document.getElementById('registration-form');
+    const errorBox = document.getElementById('register-error');
 
     if (regForm) {
         regForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (errorBox) errorBox.style.display = 'none';
 
-            const businessName = (document.getElementById('businessName')?.value || 'My Transport Business').trim();
+            const businessName = (document.getElementById('businessName')?.value || '').trim();
             const businessType = document.getElementById('businessType')?.value || 'Transport';
-            const businessRegNumber = (document.getElementById('businessRegNumber')?.value || 'REG-2026-001').trim();
+            const businessRegNumber = (document.getElementById('businessRegNumber')?.value || '').trim();
             const vehicleCount = parseInt(document.getElementById('vehicleCount')?.value) || 10;
-            const location = (document.getElementById('location')?.value || 'Chennai').trim();
-            const ownerName = (document.getElementById('ownerName')?.value || 'Owner').trim();
-            const ownerEmail = (document.getElementById('ownerEmail')?.value || 'owner@vehigo.com').trim();
-            const phone = (document.getElementById('phone')?.value || '9876543210').trim();
+            const location = (document.getElementById('location')?.value || '').trim();
+            const ownerName = (document.getElementById('ownerName')?.value || '').trim();
+            const ownerEmail = (document.getElementById('ownerEmail')?.value || '').trim();
+            const phone = (document.getElementById('phone')?.value || '').trim();
             const selectedPlan = document.getElementById('selected-plan-input')?.value || '1_YEAR';
-            const username = (document.getElementById('username')?.value || 'owner').trim();
-            const password = (document.getElementById('password')?.value || 'owner123').trim();
+            const username = (document.getElementById('username')?.value || '').trim();
+            const password = (document.getElementById('password')?.value || '').trim();
+
+            if (!businessName || !ownerName || !ownerEmail || !phone || !username || !password) {
+                showError("Please fill in all required fields marked with *");
+                return;
+            }
 
             const payload = {
                 businessName, businessType, businessRegNumber, vehicleCount,
                 location, ownerName, ownerEmail, phone, selectedPlan, username, password
             };
 
-            showToast("Processing registration...", "info");
-
-            const tempId = 'SUB-' + Math.floor(Math.random() * 1000000);
-            sessionStorage.setItem('last_sub_id', tempId);
+            showToast("Verifying registration details...", "info");
 
             try {
                 const response = await API.post('/subscriptions/register', payload);
+
                 if (response && response.id) {
                     sessionStorage.setItem('last_sub_id', response.id);
                     window.location.href = `payment.html?id=${response.id}`;
                     return;
+                } else {
+                    showError("Registration failed. Please check your inputs.");
                 }
             } catch (error) {
-                console.warn("Registration API fallback (proceeding to checkout):", error);
+                console.error("Registration error:", error);
+                // STOP: Display duplicate error message (e.g. Email/Phone/Username already registered)
+                const msg = error.message || "Email address, Mobile number, or Username is already registered.";
+                showError(msg);
             }
-
-            // Guaranteed smooth transition to payment checkout
-            window.location.href = `payment.html?id=${tempId}`;
         });
+    }
+
+    function showError(msg) {
+        if (errorBox) {
+            errorBox.textContent = msg;
+            errorBox.style.display = 'block';
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            showToast(msg, 'error');
+        }
     }
 });
 

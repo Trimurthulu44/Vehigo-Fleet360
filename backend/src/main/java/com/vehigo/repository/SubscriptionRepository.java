@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface SubscriptionRepository extends MongoRepository<Subscription, String> {
     Optional<Subscription> findByUsername(String username);
     Optional<Subscription> findByOwnerEmail(String ownerEmail);
+    Optional<Subscription> findByPhone(String phone);
 }
