@@ -10,15 +10,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    document.getElementById('subscription-id').value = subscriptionId;
+    const subIdInput = document.getElementById('subscription-id');
+    if (subIdInput) {
+        subIdInput.value = subscriptionId;
+    }
 
     try {
         const sub = await API.get(`/subscriptions/${subscriptionId}`);
         if (sub) {
-            document.getElementById('pay-business').textContent = sub.businessName;
-            document.getElementById('pay-email').textContent = sub.ownerEmail;
-            document.getElementById('pay-plan').textContent = formatPlanName(sub.selectedPlan);
-            document.getElementById('pay-amount').textContent = formatCurrency(sub.amount);
+            const bizEl = document.getElementById('pay-business');
+            const emailEl = document.getElementById('pay-email');
+            const planEl = document.getElementById('pay-plan');
+            const amtEl = document.getElementById('pay-amount');
+
+            if (bizEl) bizEl.textContent = sub.businessName || 'N/A';
+            if (emailEl) emailEl.textContent = sub.ownerEmail || 'N/A';
+            if (planEl) planEl.textContent = formatPlanName(sub.selectedPlan);
+            if (amtEl) amtEl.textContent = formatCurrency(sub.amount);
         }
     } catch (error) {
         console.error("Failed to load subscription details:", error);
@@ -29,7 +37,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (payForm) {
         payForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const payMethod = document.querySelector('input[name="payMethod"]:checked')?.value || 'DEMO_CARD';
+            const selectedRadio = document.querySelector('input[name="payMethod"]:checked');
+            const payMethod = selectedRadio ? selectedRadio.value : 'DEMO_CARD';
 
             try {
                 showToast("Processing demo payment...", "success");
@@ -38,15 +47,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                     transactionId: 'TXN-' + Math.floor(Math.random() * 1000000)
                 });
 
-                if (response && response.subscriptionStatus === 'ACTIVE') {
+                if (response && (response.subscriptionStatus === 'ACTIVE' || response.paymentStatus === 'SUCCESS')) {
                     showToast("Payment Successful! Subscription Activated.", "success");
                     setTimeout(() => {
                         window.location.href = `confirmation.html?id=${subscriptionId}`;
-                    }, 1000);
+                    }, 800);
+                } else {
+                    window.location.href = `confirmation.html?id=${subscriptionId}`;
                 }
             } catch (error) {
                 console.error("Payment failed:", error);
-                showToast("Payment failed. Please try again.", "error");
+                showToast(error.message || "Payment failed. Please try again.", "error");
             }
         });
     }
