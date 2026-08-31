@@ -60,22 +60,22 @@
                 <input type="hidden" id="subscription-id">
 
                 <div class="form-group">
-                    <label>Select Simulated Payment Method</label>
+                    <label>Select Payment Method</label>
                     <div class="payment-methods-grid">
-                        <label class="payment-method-card active">
-                            <input type="radio" name="payMethod" value="DEMO_CARD" checked>
-                            <span class="method-icon">💳</span>
-                            <span class="method-name">Demo Card (Test)</span>
-                        </label>
-                        <label class="payment-method-card">
-                            <input type="radio" name="payMethod" value="DEMO_UPI">
+                        <label class="payment-method-card active" id="card-option">
+                            <input type="radio" name="payMethod" value="DEMO_UPI" checked>
                             <span class="method-icon">📱</span>
-                            <span class="method-name">Demo UPI / QR</span>
+                            <span class="method-name">UPI / QR Code</span>
                         </label>
-                        <label class="payment-method-card">
+                        <label class="payment-method-card" id="card-option-2">
+                            <input type="radio" name="payMethod" value="DEMO_CARD">
+                            <span class="method-icon">💳</span>
+                            <span class="method-name">Demo Card</span>
+                        </label>
+                        <label class="payment-method-card" id="card-option-3">
                             <input type="radio" name="payMethod" value="DEMO_NETBANKING">
                             <span class="method-icon">🏦</span>
-                            <span class="method-name">Net Banking (Test)</span>
+                            <span class="method-name">Net Banking</span>
                         </label>
                     </div>
                 </div>
@@ -87,6 +87,90 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Interactive UPI QR Code Modal Overlay -->
+    <div id="upi-qr-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content qr-modal-card">
+            <div class="modal-header" style="text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem;">
+                <h3 style="font-size: 1.35rem; font-weight: 800;">Scan & Pay via UPI</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">Use GPay, PhonePe, Paytm, or BHIM to scan the QR code.</p>
+            </div>
+
+            <div style="text-align: center; margin: 1.25rem 0;">
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Amount to Pay</div>
+                <div id="qr-amount-display" style="font-size: 2.25rem; font-weight: 800; color: var(--accent-cyan);">₹4,999</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.35rem; font-family: monospace; background: rgba(255,255,255,0.05); padding: 0.35rem 0.75rem; border-radius: 4px; display: inline-block;">
+                    UPI ID: <strong>vehigo.saas@upi</strong>
+                </div>
+            </div>
+
+            <!-- Stylized QR Code Visual -->
+            <div class="qr-code-wrapper" style="background: #ffffff; padding: 1.25rem; border-radius: var(--radius-md); max-width: 220px; margin: 0 auto; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative;">
+                <svg viewBox="0 0 100 100" width="180" height="180" style="display: block; margin: 0 auto;">
+                    <!-- Outer QR Pattern -->
+                    <rect x="0" y="0" width="100" height="100" fill="#ffffff" />
+                    <!-- Position Patterns Top-Left -->
+                    <rect x="5" y="5" width="25" height="25" fill="#0f172a" />
+                    <rect x="9" y="9" width="17" height="17" fill="#ffffff" />
+                    <rect x="13" y="13" width="9" height="9" fill="#06b6d4" />
+                    <!-- Position Patterns Top-Right -->
+                    <rect x="70" y="5" width="25" height="25" fill="#0f172a" />
+                    <rect x="74" y="9" width="17" height="17" fill="#ffffff" />
+                    <rect x="78" y="13" width="9" height="9" fill="#06b6d4" />
+                    <!-- Position Patterns Bottom-Left -->
+                    <rect x="5" y="70" width="25" height="25" fill="#0f172a" />
+                    <rect x="9" y="74" width="17" height="17" fill="#ffffff" />
+                    <rect x="13" y="78" width="9" height="9" fill="#06b6d4" />
+                    <!-- Simulated Data Grid -->
+                    <rect x="35" y="8" width="6" height="6" fill="#0f172a" />
+                    <rect x="45" y="8" width="6" height="6" fill="#06b6d4" />
+                    <rect x="55" y="8" width="6" height="6" fill="#0f172a" />
+                    <rect x="35" y="18" width="6" height="6" fill="#3b82f6" />
+                    <rect x="45" y="18" width="6" height="6" fill="#0f172a" />
+                    <rect x="8" y="35" width="6" height="6" fill="#0f172a" />
+                    <rect x="18" y="35" width="6" height="6" fill="#06b6d4" />
+                    <rect x="8" y="45" width="6" height="6" fill="#3b82f6" />
+                    <rect x="18" y="45" width="6" height="6" fill="#0f172a" />
+                    <rect x="8" y="55" width="6" height="6" fill="#06b6d4" />
+                    <rect x="35" y="35" width="30" height="30" fill="#0f172a" rx="4"/>
+                    <text x="50" y="55" font-size="18" text-anchor="middle" fill="#06b6d4">🚚</text>
+                    <rect x="72" y="35" width="6" height="6" fill="#0f172a" />
+                    <rect x="82" y="35" width="6" height="6" fill="#3b82f6" />
+                    <rect x="72" y="45" width="6" height="6" fill="#06b6d4" />
+                    <rect x="82" y="45" width="6" height="6" fill="#0f172a" />
+                    <rect x="72" y="55" width="6" height="6" fill="#3b82f6" />
+                    <rect x="82" y="55" width="6" height="6" fill="#0f172a" />
+                    <rect x="35" y="72" width="6" height="6" fill="#06b6d4" />
+                    <rect x="45" y="72" width="6" height="6" fill="#0f172a" />
+                    <rect x="55" y="72" width="6" height="6" fill="#3b82f6" />
+                    <rect x="35" y="82" width="6" height="6" fill="#0f172a" />
+                    <rect x="45" y="82" width="6" height="6" fill="#06b6d4" />
+                    <rect x="55" y="82" width="6" height="6" fill="#0f172a" />
+                    <rect x="72" y="72" width="6" height="6" fill="#06b6d4" />
+                    <rect x="82" y="82" width="6" height="6" fill="#3b82f6" />
+                </svg>
+                <div style="font-size: 0.75rem; color: #475569; font-weight: 700; margin-top: 0.5rem;">VEHIGO DEMO QR</div>
+            </div>
+
+            <!-- Supported Apps -->
+            <div style="display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.25rem; font-size: 0.8rem; color: var(--text-secondary);">
+                <span>💳 GPay</span>
+                <span>📱 PhonePe</span>
+                <span>🛍️ Paytm</span>
+                <span>🏛️ BHIM</span>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                <button type="button" id="confirm-qr-pay-btn" class="btn btn-primary btn-block btn-lg" style="justify-content: center; background: linear-gradient(135deg, var(--status-available), #059669);">
+                    <span>I Have Scanned & Paid</span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" style="stroke: currentColor; fill: none; stroke-width: 2;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+                <button type="button" id="close-qr-modal-btn" class="btn btn-secondary btn-block" style="justify-content: center;">
+                    Cancel
+                </button>
+            </div>
         </div>
     </div>
 
