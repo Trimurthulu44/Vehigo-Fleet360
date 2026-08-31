@@ -1,6 +1,21 @@
-/* Centralized API Client for VEHIGO */
+/* Centralized API Client for VEHIGO SaaS Platform */
 
-const API_BASE_URL = 'http://localhost:8080/api';
+// Dynamic Production API URL Resolver:
+// 1. If running on localhost / 127.0.0.1 -> use local Spring Boot server (http://localhost:8080/api)
+// 2. If running on GitHub Pages / Cloud domain -> use live Koyeb backend URL or custom window override
+const getApiBaseUrl = () => {
+    if (window.VEHIGO_BACKEND_URL) {
+        return window.VEHIGO_BACKEND_URL.replace(/\/$/, '') + '/api';
+    }
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+        return 'http://localhost:8080/api';
+    }
+    // Replace this placeholder with your live Render backend URL after deploying on Render
+    return 'https://vehigo-fleet360-1.onrender.com/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const API = {
     async request(endpoint, options = {}) {
@@ -35,7 +50,7 @@ const API = {
         } catch (error) {
             console.error(`API Error [${endpoint}]:`, error);
             if (error.name === 'TypeError' && error.message.includes('Fetch')) {
-                showToast('Unable to connect to Spring Boot backend. Please check server status.', 'error');
+                showToast('Unable to connect to Spring Boot backend server. Please check deployment or server status.', 'error');
             }
             throw error;
         }
