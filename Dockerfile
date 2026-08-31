@@ -16,11 +16,11 @@ WORKDIR /app
 # Copy compiled JAR artifact
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose Spring Boot web server port
-EXPOSE 8080
+# Expose default port
+EXPOSE 8080 10000
 
-# Restrain JVM heap memory for Koyeb free tier RAM limits
+# Restrain JVM heap memory for free tier RAM limits
 ENV JAVA_OPTS="-Xmx256m -Xms128m"
 
-# Launch Spring Boot Application
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+# Launch Spring Boot Application with dynamic PORT binding for Render/Koyeb
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -jar app.jar"]
