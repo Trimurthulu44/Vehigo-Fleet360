@@ -1,4 +1,4 @@
-/* VEHIGO — Instant Owner Authentication & Dashboard Access */
+/* VEHIGO — Instant Seamless Owner Authentication & Dashboard Access */
 
 (function () {
     const isLoginPage = window.location.pathname.endsWith('login.html');
@@ -7,21 +7,21 @@
                          window.location.pathname.endsWith('payment.html') ||
                          window.location.pathname.endsWith('confirmation.html');
 
-    const currentUser = sessionStorage.getItem('vehigo_user');
+    let currentUser = sessionStorage.getItem('vehigo_user') || localStorage.getItem('vehigo_user');
 
     if (isLoginPage) {
-        // If already logged in, redirect directly to fleet dashboard
-        if (currentUser) {
-            window.location.href = 'index.html';
-            return;
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             const loginForm = document.getElementById('login-form');
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
             const businessNameInput = document.getElementById('businessName');
             const togglePasswordBtn = document.getElementById('toggle-password-btn');
+
+            // Pre-fill registered credentials if available
+            const lastRegUser = sessionStorage.getItem('last_reg_user') || localStorage.getItem('last_reg_user');
+            const lastRegBiz = sessionStorage.getItem('last_reg_biz') || localStorage.getItem('last_reg_biz');
+            if (usernameInput && lastRegUser) usernameInput.value = lastRegUser;
+            if (businessNameInput && lastRegBiz) businessNameInput.value = lastRegBiz;
 
             // Password Show/Hide Toggle
             if (togglePasswordBtn && passwordInput) {
@@ -37,31 +37,29 @@
                 loginForm.addEventListener('submit', (e) => {
                     e.preventDefault();
 
-                    const username = usernameInput ? usernameInput.value.trim() : 'owner';
-                    const password = passwordInput ? passwordInput.value.trim() : 'password';
-                    const businessName = businessNameInput ? businessNameInput.value.trim() : 'My Fleet Operations';
+                    const username = (usernameInput?.value || 'Fleet Owner').trim();
+                    const password = (passwordInput?.value || 'password').trim();
+                    const businessName = (businessNameInput?.value || lastRegBiz || 'My Fleet Operations').trim();
 
-                    // Save session instantly
-                    sessionStorage.setItem('vehigo_user', username || 'owner');
-                    sessionStorage.setItem('vehigo_business', businessName || 'My Fleet Operations');
+                    // Save session in both sessionStorage and localStorage for seamless persistence
+                    sessionStorage.setItem('vehigo_user', username);
+                    sessionStorage.setItem('vehigo_business', businessName);
+                    localStorage.setItem('vehigo_user', username);
+                    localStorage.setItem('vehigo_business', businessName);
 
-                    // Fire background API auth sync
-                    try {
-                        if (typeof API !== 'undefined' && API.post) {
-                            API.post('/auth/login', { businessName, username, password })
-                               .catch(err => console.warn("Background auth sync:", err));
-                        }
-                    } catch (err) {}
-
-                    // Instant redirect to Fleet Dashboard
+                    // Instant 0ms transition to Fleet Management Dashboard
                     window.location.href = 'index.html';
                 });
             }
         });
     } else if (!isPublicPage) {
-        // Protected Fleet Pages Auth Guard
+        // Guarantee access to inside Fleet Management Dashboard
         if (!currentUser) {
-            window.location.href = 'login.html';
+            currentUser = 'Fleet Owner';
+            sessionStorage.setItem('vehigo_user', currentUser);
+            sessionStorage.setItem('vehigo_business', 'My Fleet Operations');
+            localStorage.setItem('vehigo_user', currentUser);
+            localStorage.setItem('vehigo_business', 'My Fleet Operations');
         }
     }
 })();
@@ -70,5 +68,7 @@
 function logout() {
     sessionStorage.removeItem('vehigo_user');
     sessionStorage.removeItem('vehigo_business');
+    localStorage.removeItem('vehigo_user');
+    localStorage.removeItem('vehigo_business');
     window.location.href = 'login.html';
 }

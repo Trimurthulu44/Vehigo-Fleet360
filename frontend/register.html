@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Business Registration — VEHIGO SaaS Platform</title>
-    <link rel="stylesheet" href="css/style.css?v=4.0">
+    <link rel="stylesheet" href="css/style.css?v=6.0">
 </head>
 <body class="public-body">
 
@@ -128,8 +128,8 @@
         Developed by @Valteti Trimurthulu
     </footer>
 
-    <script src="js/api.js?v=4.0"></script>
-    <script src="js/register.js?v=4.0"></script>
+    <script src="js/api.js?v=6.0"></script>
+    <script src="js/register.js?v=6.0"></script>
     <script>
         function handleRegisterFormSubmit(e) {
             if (e) {
@@ -137,8 +137,15 @@
                 e.stopPropagation();
             }
 
+            const businessName = (document.getElementById('businessName')?.value || 'My Transport Business').trim();
+            const username = (document.getElementById('username')?.value || 'owner').trim();
+
             const tempId = 'SUB-' + Math.floor(Math.random() * 1000000);
             sessionStorage.setItem('last_sub_id', tempId);
+            sessionStorage.setItem('last_reg_user', username);
+            sessionStorage.setItem('last_reg_biz', businessName);
+            localStorage.setItem('last_reg_user', username);
+            localStorage.setItem('last_reg_biz', businessName);
 
             // INSTANT 0ms REDIRECT TO PAYMENT CHECKOUT PAGE
             window.location.href = `payment.html?id=${tempId}`;
