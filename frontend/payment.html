@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Checkout — VEHIGO SaaS Platform</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2.0">
 </head>
 <body class="public-body">
 
@@ -56,7 +56,7 @@
             </div>
 
             <!-- Simulated Payment Method Selector -->
-            <form id="payment-form" style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <form id="payment-form" onsubmit="handleProceedPayment(event)" style="display: flex; flex-direction: column; gap: 1.25rem;">
                 <input type="hidden" id="subscription-id">
 
                 <div class="form-group">
@@ -81,7 +81,7 @@
                 </div>
 
                 <div class="registration-actions">
-                    <button type="submit" class="btn btn-primary btn-block btn-lg" style="justify-content: center;">
+                    <button type="submit" onclick="handleProceedPayment(event)" class="btn btn-primary btn-block btn-lg" style="justify-content: center;">
                         <span>Proceed to Payment</span>
                         <svg viewBox="0 0 24 24" width="18" height="18" style="stroke: currentColor; fill: none; stroke-width: 2;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </button>
@@ -109,21 +109,16 @@
             <!-- Stylized QR Code Visual -->
             <div class="qr-code-wrapper" style="background: #ffffff; padding: 1.25rem; border-radius: var(--radius-md); max-width: 220px; margin: 0 auto; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative;">
                 <svg viewBox="0 0 100 100" width="180" height="180" style="display: block; margin: 0 auto;">
-                    <!-- Outer QR Pattern -->
                     <rect x="0" y="0" width="100" height="100" fill="#ffffff" />
-                    <!-- Position Patterns Top-Left -->
                     <rect x="5" y="5" width="25" height="25" fill="#0f172a" />
                     <rect x="9" y="9" width="17" height="17" fill="#ffffff" />
                     <rect x="13" y="13" width="9" height="9" fill="#06b6d4" />
-                    <!-- Position Patterns Top-Right -->
                     <rect x="70" y="5" width="25" height="25" fill="#0f172a" />
                     <rect x="74" y="9" width="17" height="17" fill="#ffffff" />
                     <rect x="78" y="13" width="9" height="9" fill="#06b6d4" />
-                    <!-- Position Patterns Bottom-Left -->
                     <rect x="5" y="70" width="25" height="25" fill="#0f172a" />
                     <rect x="9" y="74" width="17" height="17" fill="#ffffff" />
                     <rect x="13" y="78" width="9" height="9" fill="#06b6d4" />
-                    <!-- Simulated Data Grid -->
                     <rect x="35" y="8" width="6" height="6" fill="#0f172a" />
                     <rect x="45" y="8" width="6" height="6" fill="#06b6d4" />
                     <rect x="55" y="8" width="6" height="6" fill="#0f172a" />
@@ -163,11 +158,11 @@
             </div>
 
             <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
-                <button type="button" id="confirm-qr-pay-btn" class="btn btn-primary btn-block btn-lg" style="justify-content: center; background: linear-gradient(135deg, var(--status-available), #059669);">
+                <button type="button" id="confirm-qr-pay-btn" onclick="confirmQrPayment()" class="btn btn-primary btn-block btn-lg" style="justify-content: center; background: linear-gradient(135deg, var(--status-available), #059669);">
                     <span>I Have Scanned & Paid</span>
                     <svg viewBox="0 0 24 24" width="18" height="18" style="stroke: currentColor; fill: none; stroke-width: 2;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 </button>
-                <button type="button" id="close-qr-modal-btn" class="btn btn-secondary btn-block" style="justify-content: center;">
+                <button type="button" id="close-qr-modal-btn" onclick="closeQrModal()" class="btn btn-secondary btn-block" style="justify-content: center;">
                     Cancel
                 </button>
             </div>
@@ -179,7 +174,7 @@
         Developed by @Valteti Trimurthulu
     </footer>
 
-    <script src="js/api.js"></script>
-    <script src="js/payment.js"></script>
+    <script src="js/api.js?v=2.0"></script>
+    <script src="js/payment.js?v=2.0"></script>
 </body>
 </html>

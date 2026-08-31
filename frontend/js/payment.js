@@ -1,19 +1,20 @@
 /* VEHIGO — Demo Payment Checkout Logic & UPI QR Scanner */
 
+let activeSubscriptionId = 'DEMO-SUB-ID';
+let currentAmountFormatted = '₹4,999';
+
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
-    let subscriptionId = urlParams.get('id') || sessionStorage.getItem('last_sub_id') || 'DEMO-SUB-ID';
+    activeSubscriptionId = urlParams.get('id') || sessionStorage.getItem('last_sub_id') || 'DEMO-SUB-ID';
 
     const subIdInput = document.getElementById('subscription-id');
     if (subIdInput) {
-        subIdInput.value = subscriptionId;
+        subIdInput.value = activeSubscriptionId;
     }
 
-    let currentAmountFormatted = '₹4,999';
-
-    if (subscriptionId && subscriptionId !== 'DEMO-SUB-ID') {
+    if (activeSubscriptionId && activeSubscriptionId !== 'DEMO-SUB-ID') {
         try {
-            const sub = await API.get(`/subscriptions/${subscriptionId}`);
+            const sub = await API.get(`/subscriptions/${activeSubscriptionId}`);
             if (sub) {
                 const bizEl = document.getElementById('pay-business');
                 const emailEl = document.getElementById('pay-email');
@@ -32,17 +33,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Modal Elements
-    const upiModal = document.getElementById('upi-qr-modal');
     const qrAmtDisplay = document.getElementById('qr-amount-display');
-    const confirmQrBtn = document.getElementById('confirm-qr-pay-btn');
-    const closeQrBtn = document.getElementById('close-qr-modal-btn');
-
     if (qrAmtDisplay) {
         qrAmtDisplay.textContent = currentAmountFormatted;
     }
 
-    // Radio Card Selection Highlight
+    // Radio Selection Highlight
     const radioInputs = document.querySelectorAll('input[name="payMethod"]');
     radioInputs.forEach(radio => {
         radio.addEventListener('change', () => {
@@ -50,52 +46,41 @@ document.addEventListener('DOMContentLoaded', async () => {
             radio.closest('.payment-method-card')?.classList.add('active');
         });
     });
-
-    // Payment Form Submission
-    const payForm = document.getElementById('payment-form');
-    if (payForm) {
-        payForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const selectedRadio = document.querySelector('input[name="payMethod"]:checked');
-            const payMethod = selectedRadio ? selectedRadio.value : 'DEMO_UPI';
-
-            if (payMethod === 'DEMO_UPI') {
-                // Open UPI QR Code Modal Scanner
-                if (upiModal) {
-                    if (qrAmtDisplay) qrAmtDisplay.textContent = document.getElementById('pay-amount')?.textContent || currentAmountFormatted;
-                    upiModal.style.display = 'flex';
-                } else {
-                    executePayment('DEMO_UPI', subscriptionId);
-                }
-            } else {
-                executePayment(payMethod, subscriptionId);
-            }
-        });
-    }
-
-    // Confirm QR Code Payment Button Handler
-    if (confirmQrBtn) {
-        confirmQrBtn.addEventListener('click', () => {
-            if (upiModal) upiModal.style.display = 'none';
-            executePayment('DEMO_UPI_QR', subscriptionId);
-        });
-    }
-
-    // Close QR Modal Button Handler
-    if (closeQrBtn) {
-        closeQrBtn.addEventListener('click', () => {
-            if (upiModal) upiModal.style.display = 'none';
-        });
-    }
 });
 
-async function executePayment(payMethod, subscriptionId) {
+// Global Function Handler for Form Submit & Proceed Button
+function handleProceedPayment(e) {
+    if (e) e.preventDefault();
+
+    const upiModal = document.getElementById('upi-qr-modal');
+    const qrAmtDisplay = document.getElementById('qr-amount-display');
+    const selectedRadio = document.querySelector('input[name="payMethod"]:checked');
+    const payMethod = selectedRadio ? selectedRadio.value : 'DEMO_UPI';
+
+    if (payMethod === 'DEMO_UPI' || payMethod === 'DEMO_UPI_QR') {
+        if (upiModal) {
+            const amtText = document.getElementById('pay-amount')?.textContent || currentAmountFormatted;
+            if (qrAmtDisplay) qrAmtDisplay.textContent = amtText;
+            upiModal.style.display = 'flex';
+        } else {
+            confirmQrPayment();
+        }
+    } else {
+        confirmQrPayment();
+    }
+}
+
+// Global Function Handler for QR Modal Payment Confirmation
+async function confirmQrPayment() {
+    closeQrModal();
     showToast("Processing payment verification...", "success");
 
+    const subId = activeSubscriptionId || sessionStorage.getItem('last_sub_id') || 'DEMO-SUB-ID';
+
     try {
-        if (subscriptionId && subscriptionId !== 'DEMO-SUB-ID') {
-            await API.post(`/subscriptions/${subscriptionId}/payment`, {
-                paymentMethod: payMethod,
+        if (subId && subId !== 'DEMO-SUB-ID') {
+            await API.post(`/subscriptions/${subId}/payment`, {
+                paymentMethod: 'DEMO_UPI_QR',
                 transactionId: 'UPI-TXN-' + Math.floor(Math.random() * 1000000)
             });
         }
@@ -105,8 +90,16 @@ async function executePayment(payMethod, subscriptionId) {
 
     showToast("Payment Successful! Activating account...", "success");
     setTimeout(() => {
-        window.location.href = `confirmation.html?id=${subscriptionId}`;
+        window.location.href = `confirmation.html?id=${subId}`;
     }, 800);
+}
+
+// Global Function Handler to Close Modal
+function closeQrModal() {
+    const upiModal = document.getElementById('upi-qr-modal');
+    if (upiModal) {
+        upiModal.style.display = 'none';
+    }
 }
 
 function formatPlanName(plan) {
