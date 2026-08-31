@@ -16,8 +16,8 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${spring.mail.username:vehigo.saas@gmail.com}")
-    private String fromEmail;
+    @Value("${spring.mail.username:#{null}}")
+    private String mailUsername;
 
     @Autowired(required = false)
     public EmailService(JavaMailSender mailSender) {
@@ -64,19 +64,20 @@ public class EmailService {
             subscription.getUsername()
         );
 
+        String senderAddress = (mailUsername != null && !mailUsername.trim().isEmpty()) ? mailUsername.trim() : "vehigo.saas@gmail.com";
+
         // Log formatted email to console for development visibility
         logger.info("==================================================================");
         logger.info("[VEHIGO EMAIL SERVICE] Dispatching 'Welcome to the Family' email to: {}", recipient);
-        logger.info("From: {}", (fromEmail != null && !fromEmail.isBlank()) ? fromEmail : "vehigo.saas@gmail.com");
+        logger.info("From: {}", senderAddress);
         logger.info("Subject: {}", subject);
         logger.info("Body:\n{}", content);
         logger.info("==================================================================");
 
-        if (mailSender != null) {
+        if (mailSender != null && mailUsername != null && !mailUsername.trim().isEmpty()) {
             try {
                 SimpleMailMessage message = new SimpleMailMessage();
-                String sender = (fromEmail != null && !fromEmail.isBlank()) ? fromEmail : "vehigo.saas@gmail.com";
-                message.setFrom(sender);
+                message.setFrom(senderAddress);
                 message.setTo(recipient);
                 message.setSubject(subject);
                 message.setText(content);
@@ -87,7 +88,7 @@ public class EmailService {
                 logger.error("[VEHIGO EMAIL SERVICE] SMTP dispatch error: ", e);
             }
         } else {
-            logger.info("[VEHIGO EMAIL SERVICE] SMTP mail sender bean not configured. Development mode logging completed.");
+            logger.info("[VEHIGO EMAIL SERVICE] SMTP mail sender credentials not configured. Development mode logging completed.");
         }
         return true;
     }
