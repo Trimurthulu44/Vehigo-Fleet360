@@ -16,12 +16,11 @@ WORKDIR /app
 # Copy compiled JAR artifact
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose Spring Boot port 8080
-EXPOSE 8080
+# Expose ports 8080 and 10000
+EXPOSE 8080 10000
 
-# Environment variables
-ENV PORT=8080
+# JVM memory constraints for cloud free tier
 ENV JAVA_OPTS="-Xmx256m -Xms128m"
 
-# Launch Spring Boot Application on port 8080
-ENTRYPOINT ["java", "-Dserver.port=8080", "-jar", "app.jar"]
+# Launch Spring Boot Application evaluating dynamic PORT variable
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -jar app.jar"]
