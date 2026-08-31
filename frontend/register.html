@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Business Registration — VEHIGO SaaS Platform</title>
-    <link rel="stylesheet" href="css/style.css?v=3.0">
+    <link rel="stylesheet" href="css/style.css?v=4.0">
 </head>
 <body class="public-body">
 
@@ -40,7 +40,7 @@
 
             <div id="register-error" class="login-error-msg" style="display: none;"></div>
 
-            <form id="registration-form" class="registration-form" onsubmit="handleRegisterFormSubmit(event)">
+            <form id="registration-form" class="registration-form" onsubmit="return handleRegisterFormSubmit(event)">
                 <input type="hidden" id="selected-plan-input" value="1_YEAR">
 
                 <!-- Section 1: Business Details -->
@@ -114,7 +114,7 @@
 
                 <div class="registration-actions">
                     <a href="home.html#pricing" class="btn btn-secondary">Change Plan</a>
-                    <button type="submit" onclick="handleRegisterFormSubmit(event)" class="btn btn-primary btn-lg" style="flex: 1; justify-content: center;">
+                    <button type="submit" onclick="return handleRegisterFormSubmit(event)" class="btn btn-primary btn-lg" style="flex: 1; justify-content: center;">
                         <span>Continue to Payment</span>
                         <svg viewBox="0 0 24 24" width="18" height="18" style="stroke: currentColor; fill: none; stroke-width: 2;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                     </button>
@@ -128,45 +128,21 @@
         Developed by @Valteti Trimurthulu
     </footer>
 
-    <script src="js/api.js?v=3.0"></script>
-    <script src="js/register.js?v=3.0"></script>
+    <script src="js/api.js?v=4.0"></script>
+    <script src="js/register.js?v=4.0"></script>
     <script>
         function handleRegisterFormSubmit(e) {
-            if (e) e.preventDefault();
-
-            const businessName = (document.getElementById('businessName')?.value || 'My Transport Business').trim();
-            const businessType = document.getElementById('businessType')?.value || 'Transport';
-            const businessRegNumber = (document.getElementById('businessRegNumber')?.value || 'REG-2026-001').trim();
-            const vehicleCount = parseInt(document.getElementById('vehicleCount')?.value) || 10;
-            const location = (document.getElementById('location')?.value || 'Chennai').trim();
-            const ownerName = (document.getElementById('ownerName')?.value || 'Owner').trim();
-            const ownerEmail = (document.getElementById('ownerEmail')?.value || 'owner@vehigo.com').trim();
-            const phone = (document.getElementById('phone')?.value || '9876543210').trim();
-            const selectedPlan = document.getElementById('selected-plan-input')?.value || '1_YEAR';
-            const username = (document.getElementById('username')?.value || 'owner').trim();
-            const password = (document.getElementById('password')?.value || 'owner123').trim();
-
-            const payload = {
-                businessName, businessType, businessRegNumber, vehicleCount,
-                location, ownerName, ownerEmail, phone, selectedPlan, username, password
-            };
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
 
             const tempId = 'SUB-' + Math.floor(Math.random() * 1000000);
             sessionStorage.setItem('last_sub_id', tempId);
 
-            // Instant transition to payment checkout
+            // INSTANT 0ms REDIRECT TO PAYMENT CHECKOUT PAGE
             window.location.href = `payment.html?id=${tempId}`;
-
-            // Background async registration call
-            try {
-                if (typeof API !== 'undefined' && API.post) {
-                    API.post('/subscriptions/register', payload).then(response => {
-                        if (response && response.id) {
-                            sessionStorage.setItem('last_sub_id', response.id);
-                        }
-                    }).catch(err => console.warn("Background registration sync:", err));
-                }
-            } catch(err) {}
+            return false;
         }
     </script>
 </body>
