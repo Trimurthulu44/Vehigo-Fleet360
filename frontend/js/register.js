@@ -1,4 +1,4 @@
-/* VEHIGO — Business Registration Logic */
+/* VEHIGO — Business Registration Logic with Strict Validation */
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (planPriceEl) planPriceEl.textContent = planDetails.price;
     if (planInputEl) planInputEl.value = planDetails.code;
 
-    // Handle Form Submit
+    // Handle Form Submit with Strict Validation
     const regForm = document.getElementById('registration-form');
     const errorBox = document.getElementById('register-error');
 
@@ -23,39 +23,62 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             if (errorBox) errorBox.style.display = 'none';
 
+            const businessName = document.getElementById('businessName').value.trim();
+            const businessType = document.getElementById('businessType').value;
+            const businessRegNumber = document.getElementById('businessRegNumber').value.trim();
+            const vehicleCount = parseInt(document.getElementById('vehicleCount').value) || 10;
+            const location = document.getElementById('location').value.trim();
+            const ownerName = document.getElementById('ownerName').value.trim();
+            const ownerEmail = document.getElementById('ownerEmail').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const selectedPlan = document.getElementById('selected-plan-input').value;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            // Strict Client-Side Input Validation
+            if (!businessName || !ownerName || !ownerEmail || !phone || !username || !password) {
+                showError("Please fill in all required fields marked with *");
+                return;
+            }
+
+            if (password.length < 4) {
+                showError("Password must be at least 4 characters long");
+                return;
+            }
+
             const payload = {
-                businessName: document.getElementById('businessName').value.trim() || 'My Transport Business',
-                businessType: document.getElementById('businessType').value || 'Transport',
-                businessRegNumber: document.getElementById('businessRegNumber').value.trim() || 'REG-2026-001',
-                vehicleCount: parseInt(document.getElementById('vehicleCount').value) || 10,
-                location: document.getElementById('location').value.trim() || 'Chennai',
-                ownerName: document.getElementById('ownerName').value.trim() || 'Owner',
-                ownerEmail: document.getElementById('ownerEmail').value.trim() || 'owner@vehigo.com',
-                phone: document.getElementById('phone').value.trim() || '9876543210',
-                selectedPlan: document.getElementById('selected-plan-input').value,
-                username: document.getElementById('username').value.trim() || 'owner',
-                password: document.getElementById('password').value.trim() || 'owner123'
+                businessName, businessType, businessRegNumber, vehicleCount,
+                location, ownerName, ownerEmail, phone, selectedPlan, username, password
             };
 
-            showToast("Registering business...", "info");
-
-            const tempId = 'SUB-' + Math.floor(Math.random() * 1000000);
-            sessionStorage.setItem('last_sub_id', tempId);
+            showToast("Verifying registration details...", "info");
 
             try {
                 const response = await API.post('/subscriptions/register', payload);
+
                 if (response && response.id) {
                     sessionStorage.setItem('last_sub_id', response.id);
                     window.location.href = `payment.html?id=${response.id}`;
-                    return;
+                } else {
+                    showError("Registration failed. Please verify your details.");
                 }
             } catch (error) {
-                console.warn("Registration API call fallback (proceeding to checkout):", error);
+                console.error("Registration validation error:", error);
+                // STOP and display exact error message to user
+                const msg = error.message || "Registration failed. Username or email may already be in use.";
+                showError(msg);
             }
-
-            // Always proceed to payment checkout page
-            window.location.href = `payment.html?id=${tempId}`;
         });
+    }
+
+    function showError(msg) {
+        if (errorBox) {
+            errorBox.textContent = msg;
+            errorBox.style.display = 'block';
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            showToast(msg, 'error');
+        }
     }
 });
 

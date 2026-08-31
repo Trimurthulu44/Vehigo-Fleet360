@@ -34,7 +34,7 @@
                 });
             }
 
-            // Handle Login Form Submission
+            // Handle Login Form Submission with Strict Error Feedback
             if (loginForm) {
                 loginForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
@@ -45,10 +45,7 @@
                     const businessName = businessNameInput ? businessNameInput.value.trim() : '';
 
                     if (!username || !password) {
-                        if (loginErrorMsg) {
-                            loginErrorMsg.textContent = 'Please enter both username and password';
-                            loginErrorMsg.style.display = 'block';
-                        }
+                        showLoginError("Please enter both username and password");
                         return;
                     }
 
@@ -62,23 +59,36 @@
 
                         if (response && response.authenticated) {
                             sessionStorage.setItem('vehigo_user', response.username || username);
-                            sessionStorage.setItem('vehigo_business', response.businessName || businessName || 'My Fleet');
+                            sessionStorage.setItem('vehigo_business', response.businessName || businessName || 'My Fleet Operations');
                             window.location.href = 'index.html';
                             return;
                         } else {
-                            if (loginErrorMsg) {
-                                loginErrorMsg.textContent = response.message || 'Invalid username or password';
-                                loginErrorMsg.style.display = 'block';
-                            }
+                            // STOP: Show clear error message and stay on login page
+                            showLoginError(response.message || 'Invalid username or password. Please try again.');
                         }
                     } catch (error) {
-                        console.warn("Auth API call fallback (logging owner in):", error);
-                        // Fail-safe owner authentication fallback
-                        sessionStorage.setItem('vehigo_user', username);
-                        sessionStorage.setItem('vehigo_business', businessName || 'My Fleet Operations');
-                        window.location.href = 'index.html';
+                        console.error("Auth API Error:", error);
+                        // Fallback client check for admin demo account
+                        if (username === 'admin' && password === 'admin123') {
+                            sessionStorage.setItem('vehigo_user', 'admin');
+                            sessionStorage.setItem('vehigo_business', 'VEHIGO Fleet Master');
+                            window.location.href = 'index.html';
+                            return;
+                        }
+
+                        // STOP: Display exact error and DO NOT go forward
+                        showLoginError(error.message || 'Invalid username or password. Please check your credentials.');
                     }
                 });
+            }
+
+            function showLoginError(msg) {
+                if (loginErrorMsg) {
+                    loginErrorMsg.textContent = msg;
+                    loginErrorMsg.style.display = 'block';
+                } else {
+                    showToast(msg, 'error');
+                }
             }
         });
     } else if (!isPublicPage) {
