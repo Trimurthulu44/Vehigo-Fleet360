@@ -22,39 +22,47 @@ public class EmailService {
 
     public boolean sendCredentialsEmail(Subscription subscription, String rawPassword) {
         String recipient = subscription.getOwnerEmail();
-        String subject = "Welcome to VEHIGO — Your Account Credentials";
+        String subject = "🎉 Welcome to the VEHIGO Family! Your Subscription is Active";
         String content = String.format(
-            "Welcome to VEHIGO — Smart Vehicle & Fleet Management!\n\n" +
+            "======================================================================\n" +
+            "            🎉 WELCOME TO THE VEHIGO FAMILY! 🎉\n" +
+            "======================================================================\n\n" +
             "Dear %s,\n\n" +
-            "Thank you for subscribing your business '%s' to VEHIGO.\n" +
-            "Your subscription is now ACTIVE.\n\n" +
-            "ACCOUNT LOGIN DETAILS:\n" +
-            "-----------------------------------\n" +
-            "Business Name: %s\n" +
-            "Username / Email: %s\n" +
-            "Temporary Password: %s\n" +
-            "Selected Plan: %s\n" +
-            "Amount Paid: ₹%.2f\n" +
-            "Status: %s\n" +
-            "Login URL: http://localhost:8080/login.html\n" +
-            "-----------------------------------\n\n" +
-            "Please log in and change your temporary password upon first access.\n\n" +
+            "Welcome aboard! We are thrilled to have your business '%s' join the VEHIGO SaaS Fleet Management family.\n\n" +
+            "Your subscription payment has been successfully processed and your account is now ACTIVE.\n\n" +
+            "YOUR REGISTERED ACCOUNT ACCESS DETAILS:\n" +
+            "----------------------------------------------------------------------\n" +
+            "Company / Business Name : %s\n" +
+            "Business Type           : %s\n" +
+            "Registered Username     : %s\n" +
+            "Owner Email             : %s\n" +
+            "Selected Subscription   : %s\n" +
+            "Amount Paid             : ₹%.2f\n" +
+            "Subscription Status     : ACTIVE\n" +
+            "Login Portal URL        : https://trimurthulu44.github.io/Vehigo-Fleet360/frontend/login.html\n" +
+            "----------------------------------------------------------------------\n\n" +
+            "HOW TO ACCESS YOUR FLEET DASHBOARD:\n" +
+            "1. Visit the Login Portal URL above.\n" +
+            "2. Enter your registered Username (%s) and your Password.\n" +
+            "3. Start adding vehicles, tracking live telematics location, assigning drivers, and managing maintenance!\n\n" +
+            "Thank you for trusting VEHIGO to power your fleet operations.\n\n" +
             "Best regards,\n" +
             "VEHIGO Fleet Operations Team\n" +
             "Developed by @Valteti Trimurthulu",
             subscription.getOwnerName(),
             subscription.getBusinessName(),
             subscription.getBusinessName(),
+            subscription.getBusinessType() != null ? subscription.getBusinessType() : "Transport",
             subscription.getUsername(),
-            rawPassword,
+            subscription.getOwnerEmail(),
             subscription.getSelectedPlan(),
             subscription.getAmount(),
-            subscription.getSubscriptionStatus()
+            subscription.getUsername()
         );
 
-        // Development / Console Fallback Logger
+        // Log formatted email to console for development visibility
         logger.info("==================================================================");
-        logger.info("[VEHIGO EMAIL SERVICE] Dispatching credentials email to: {}", recipient);
+        logger.info("[VEHIGO EMAIL SERVICE] Dispatching 'Welcome to the Family' email to: {}", recipient);
         logger.info("Subject: {}", subject);
         logger.info("Body:\n{}", content);
         logger.info("==================================================================");
@@ -66,10 +74,10 @@ public class EmailService {
                 message.setSubject(subject);
                 message.setText(content);
                 mailSender.send(message);
-                logger.info("[VEHIGO EMAIL SERVICE] Email sent successfully via SMTP.");
+                logger.info("[VEHIGO EMAIL SERVICE] Welcome email sent successfully via SMTP.");
                 return true;
             } catch (Exception e) {
-                logger.warn("[VEHIGO EMAIL SERVICE] SMTP dispatch failed (development mode fallback active): {}", e.getMessage());
+                logger.warn("[VEHIGO EMAIL SERVICE] SMTP dispatch fallback: {}", e.getMessage());
             }
         } else {
             logger.info("[VEHIGO EMAIL SERVICE] SMTP mail sender bean not configured. Development mode logging completed.");
