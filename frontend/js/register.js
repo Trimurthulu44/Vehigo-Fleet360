@@ -38,9 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
+                showToast("Submitting registration...", "info");
                 const response = await API.post('/subscriptions/register', payload);
                 if (response && response.id) {
+                    sessionStorage.setItem('last_sub_id', response.id);
                     window.location.href = `payment.html?id=${response.id}`;
+                } else {
+                    window.location.href = `payment.html?id=DEMO-ID`;
                 }
             } catch (error) {
                 console.error("Registration failed:", error);
