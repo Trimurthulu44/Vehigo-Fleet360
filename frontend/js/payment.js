@@ -1,7 +1,6 @@
-/* VEHIGO — Demo Payment Checkout Logic & UPI QR Scanner */
+/* VEHIGO — Super Fast & Simple Payment Checkout */
 
 let activeSubscriptionId = 'DEMO-SUB-ID';
-let currentAmountFormatted = '₹4,999';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -21,85 +20,48 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const planEl = document.getElementById('pay-plan');
                 const amtEl = document.getElementById('pay-amount');
 
-                currentAmountFormatted = formatCurrency(sub.amount);
-
                 if (bizEl) bizEl.textContent = sub.businessName || 'Registered Fleet Business';
                 if (emailEl) emailEl.textContent = sub.ownerEmail || 'owner@vehigo.com';
                 if (planEl) planEl.textContent = formatPlanName(sub.selectedPlan);
-                if (amtEl) amtEl.textContent = currentAmountFormatted;
+                if (amtEl) amtEl.textContent = formatCurrency(sub.amount);
             }
         } catch (error) {
-            console.error("Failed to load subscription details:", error);
+            console.warn("Details load fallback:", error);
         }
     }
-
-    const qrAmtDisplay = document.getElementById('qr-amount-display');
-    if (qrAmtDisplay) {
-        qrAmtDisplay.textContent = currentAmountFormatted;
-    }
-
-    // Radio Selection Highlight
-    const radioInputs = document.querySelectorAll('input[name="payMethod"]');
-    radioInputs.forEach(radio => {
-        radio.addEventListener('change', () => {
-            document.querySelectorAll('.payment-method-card').forEach(card => card.classList.remove('active'));
-            radio.closest('.payment-method-card')?.classList.add('active');
-        });
-    });
 });
 
-// Global Function Handler for Form Submit & Proceed Button
+// Fast Instant Payment & Activation Handler
 function handleProceedPayment(e) {
-    if (e) e.preventDefault();
-
-    const upiModal = document.getElementById('upi-qr-modal');
-    const qrAmtDisplay = document.getElementById('qr-amount-display');
-    const selectedRadio = document.querySelector('input[name="payMethod"]:checked');
-    const payMethod = selectedRadio ? selectedRadio.value : 'DEMO_UPI';
-
-    if (payMethod === 'DEMO_UPI' || payMethod === 'DEMO_UPI_QR') {
-        if (upiModal) {
-            const amtText = document.getElementById('pay-amount')?.textContent || currentAmountFormatted;
-            if (qrAmtDisplay) qrAmtDisplay.textContent = amtText;
-            upiModal.style.display = 'flex';
-        } else {
-            confirmQrPayment();
-        }
-    } else {
-        confirmQrPayment();
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
     }
-}
-
-// Global Function Handler for QR Modal Payment Confirmation
-async function confirmQrPayment() {
-    closeQrModal();
-    showToast("Processing payment verification...", "success");
 
     const subId = activeSubscriptionId || sessionStorage.getItem('last_sub_id') || 'DEMO-SUB-ID';
 
+    // Fire async backend payment activation
     try {
-        if (subId && subId !== 'DEMO-SUB-ID') {
-            await API.post(`/subscriptions/${subId}/payment`, {
-                paymentMethod: 'DEMO_UPI_QR',
-                transactionId: 'UPI-TXN-' + Math.floor(Math.random() * 1000000)
-            });
+        if (typeof API !== 'undefined' && API.post && subId !== 'DEMO-SUB-ID') {
+            API.post(`/subscriptions/${subId}/payment`, {
+                paymentMethod: 'RAZORPAY_FAST',
+                transactionId: 'TXN-' + Math.floor(Math.random() * 1000000)
+            }).catch(err => console.warn("Background payment sync:", err));
         }
-    } catch (error) {
-        console.warn("Payment API call fallback:", error);
-    }
+    } catch (err) {}
 
-    showToast("Payment Successful! Activating account...", "success");
-    setTimeout(() => {
-        window.location.href = `confirmation.html?id=${subId}`;
-    }, 800);
+    // Instant Redirect to Confirmation Screen
+    window.location.href = `confirmation.html?id=${subId}`;
+    return false;
 }
 
-// Global Function Handler to Close Modal
+function confirmQrPayment() {
+    return handleProceedPayment(null);
+}
+
 function closeQrModal() {
     const upiModal = document.getElementById('upi-qr-modal');
-    if (upiModal) {
-        upiModal.style.display = 'none';
-    }
+    if (upiModal) upiModal.style.display = 'none';
 }
 
 function formatPlanName(plan) {
